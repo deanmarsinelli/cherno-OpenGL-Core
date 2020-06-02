@@ -10,3 +10,4 @@
 [submodule "OpenGL-Core/vendor/imgui"]
 	path = OpenGL-Core/vendor/imgui
 	url = https://github.com/TheCherno/imgui
+	ignore = dirty
