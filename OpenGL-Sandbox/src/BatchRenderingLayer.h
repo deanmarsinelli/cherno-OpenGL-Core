@@ -19,4 +19,5 @@ private:
 	GLCore::Utils::Shader* m_Shader;
 	GLCore::Utils::OrthographicCameraController m_CameraController;
 	GLuint m_QuadVA, m_QuadVB, m_QuadIB;
+	GLuint m_ChernoTex, m_HazelTex;
 };

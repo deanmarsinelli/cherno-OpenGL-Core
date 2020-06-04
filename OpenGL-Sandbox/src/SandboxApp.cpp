@@ -10,8 +10,8 @@ class Sandbox : public Application
 public:
 	Sandbox()
 	{
-		//PushLayer(new BatchRenderingLayer());
-		PushLayer(new ParticleSystemLayer());
+		PushLayer(new BatchRenderingLayer());
+		//PushLayer(new ParticleSystemLayer());
 	}
 };
 
