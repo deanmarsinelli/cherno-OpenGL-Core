@@ -1,5 +1,6 @@
 #include "GLCore.h"
 #include "BatchRenderingLayer.h"
+#include "ParticleSystemLayer.h"
 #include "SandboxLayer.h"
 
 using namespace GLCore;
@@ -9,7 +10,8 @@ class Sandbox : public Application
 public:
 	Sandbox()
 	{
-		PushLayer(new BatchRenderingLayer());
+		//PushLayer(new BatchRenderingLayer());
+		PushLayer(new ParticleSystemLayer());
 	}
 };
 
