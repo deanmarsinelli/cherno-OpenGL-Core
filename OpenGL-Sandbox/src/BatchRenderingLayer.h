@@ -20,4 +20,6 @@ private:
 	GLCore::Utils::OrthographicCameraController m_CameraController;
 	GLuint m_QuadVA, m_QuadVB, m_QuadIB;
 	GLuint m_ChernoTex, m_HazelTex;
+
+	float m_QuadPosition[2] = { -1.5, -0.5 };
 };

@@ -4,6 +4,29 @@
 using namespace GLCore;
 using namespace GLCore::Utils;
 
+struct Vec2
+{
+	float x, y;
+};
+
+struct Vec3
+{
+	float x, y, z;
+};
+
+struct Vec4
+{
+	float x, y, z, w;
+};
+
+struct Vertex
+{
+	Vec3 Position;
+	Vec4 Color;
+	Vec2 TexCoords;
+	float TexIndex;
+};
+
 BatchRenderingLayer::BatchRenderingLayer()
 	: m_CameraController(16.0f / 9.0f)
 {
@@ -52,44 +75,28 @@ void BatchRenderingLayer::OnAttach()
 
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 
-	// position, color
-	float vertices[] = {
-		// position x3, color x4, texcoord x2, texindex x1
-		// quad 1 - cherno texture
-		-1.5f, -0.5f, 0.0f, 0.18f, 0.6f, 0.96f, 1.0f, 0.0f, 0.0f, 0.0f, // bottom left
-		-0.5f, -0.5f, 0.0f, 0.18f, 0.6f, 0.96f, 1.0f, 1.0f, 0.0f, 0.0f, // bottom right
-		-0.5f,  0.5f, 0.0f, 0.18f, 0.6f, 0.96f, 1.0f, 1.0f, 1.0f, 0.0f, // top right
-		-1.5f,  0.5f, 0.0f, 0.18f, 0.6f, 0.96f, 1.0f, 0.0f, 1.0f, 0.0f, // top left
-
-		// quad 2 - hazel texture
-		 0.5f, -0.5f, 0.0f, 1.0f, 0.93f, 0.24f, 1.0f, 0.0f, 0.0f, 1.0f, // bottom left
-		 1.5f, -0.5f, 0.0f, 1.0f, 0.93f, 0.24f, 1.0f, 1.0f, 0.0f, 1.0f, // bottom right
-		 1.5f,  0.5f, 0.0f, 1.0f, 0.93f, 0.24f, 1.0f, 1.0f, 1.0f, 1.0f, // top right
-		 0.5f,  0.5f, 0.0f, 1.0f, 0.93f, 0.24f, 1.0f, 0.0f, 1.0f, 1.0f  // top left
-	};
-
 	glCreateVertexArrays(1, &m_QuadVA);
 	glBindVertexArray(m_QuadVA);
 
 	glCreateBuffers(1, &m_QuadVB);
 	glBindBuffer(GL_ARRAY_BUFFER, m_QuadVB);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * 1000, nullptr, GL_DYNAMIC_DRAW);
 
 	// position
 	glEnableVertexArrayAttrib(m_QuadVB, 0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 10, 0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, Position));
 
 	// color
 	glEnableVertexArrayAttrib(m_QuadVB, 1);
-	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 10, (const void*)12 /*12 bytes to get to color*/);
+	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, Color));
 
 	// texcoord
 	glEnableVertexArrayAttrib(m_QuadVB, 2);
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 10, (const void*)28 /*28 bytes to get to texcoord*/);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, TexCoords));
 
 	// texindex
 	glEnableVertexArrayAttrib(m_QuadVB, 3);
-	glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(float) * 10, (const void*)36 /*36 bytes to get to texindex*/);
+	glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, TexIndex));
 
 	uint32_t indices[] = {
 		0, 1, 2, 2, 3, 0,
@@ -122,9 +129,51 @@ static void SetUniformMat4(uint32_t shader, const char* name, const glm::mat4& m
 	glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(matrix));
 }
 
+static std::array<Vertex, 4> CreateQuad(float x, float y, float texIndex)
+{
+	float size = 1.f;
+
+	Vertex v0;
+	v0.Position = { x, y, 0.0f };
+	v0.Color = { 0.18f, 0.6f, 0.96f, 1.0f };
+	v0.TexCoords = { 0.0f, 0.0f };
+	v0.TexIndex = texIndex;
+
+	Vertex v1;
+	v1.Position = { x + size, y, 0.0f };
+	v1.Color = { 0.18f, 0.6f, 0.96f, 1.0f };
+	v1.TexCoords = { 1.0f, 0.0f };
+	v1.TexIndex = texIndex;
+
+	Vertex v2;
+	v2.Position = {x + size, y + size, 0.0f };
+	v2.Color = { 0.18f, 0.6f, 0.96f, 1.0f };
+	v2.TexCoords = { 1.0f, 1.0f };
+	v2.TexIndex = texIndex;
+
+	Vertex v3;
+	v3.Position = { x, y + size, 0.0f };
+	v3.Color = { 0.18f, 0.6f, 0.96f, 1.0f };
+	v3.TexCoords = { 0.0f, 1.0f };
+	v3.TexIndex = texIndex;
+
+	return { v0, v1, v2, v3 };
+}
+
 void BatchRenderingLayer::OnUpdate(Timestep ts)
 {
 	m_CameraController.OnUpdate(ts);
+
+	// set dynamic vertex buffer
+	auto quad0 = CreateQuad(m_QuadPosition[0], m_QuadPosition[1], 0.f);
+	auto quad1 = CreateQuad(0.5f, -0.5f, 1.f);
+
+	Vertex vertices[8];
+	memcpy(vertices, quad0.data(), quad0.size() * sizeof(Vertex));
+	memcpy(vertices + quad0.size(), quad1.data(), quad1.size() * sizeof(Vertex));
+
+	glBindBuffer(GL_ARRAY_BUFFER, m_QuadVB);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -143,4 +192,7 @@ void BatchRenderingLayer::OnUpdate(Timestep ts)
 void BatchRenderingLayer::OnImGuiRender()
 {
 	// ImGui here
+	ImGui::Begin("Controls");
+	ImGui::DragFloat2("Quad Position", m_QuadPosition, 0.1f);
+	ImGui::End();
 }
